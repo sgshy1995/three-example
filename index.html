@@ -30,6 +30,8 @@
 
     import {OrbitControls} from './lib/jsm/controls/OrbitControls.js';
     import {PLYExporter} from './lib/jsm/exporters/PLYExporter.js';
+    import {TextGeometry} from "./lib/jsm/geometries/TextGeometry.js";
+    import {FontLoader} from "./lib/jsm/loaders/FontLoader.js";
     import {GUI} from './lib/jsm/libs/lil-gui.module.min.js';
 
     let scene, camera, renderer, exporter, mesh;
@@ -54,7 +56,7 @@
          * far -- Camera frustum far plane 摄像机远平面截锥
          * */
         camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
-        camera.position.set(200, 100, 200);
+        camera.position.set(200, 200, 200);
 
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0xa0a0a0);
@@ -89,15 +91,32 @@
         scene.add(ground);
 
         // 地板格绘制
-        const grid = new THREE.GridHelper(2000, 20, 0x000000, 0x000000);
-        grid.material.opacity = 0.05;
+        const grid = new THREE.GridHelper(1000, 20, 0x000000, 0x000000);
+        grid.material.opacity = 0.1;
         grid.material.transparent = true;
         scene.add(grid);
 
         // export mesh
 
         // 长方体绘制 宽  高  长
-        const geometry = new THREE.BoxGeometry(50, 50, 100);
+        let loader = new FontLoader();
+
+        loader.load( 'lib/jsm/geometries/font.json', function ( font ) {
+
+            let geometryFont = new TextGeometry( 'Hello three.js!', {
+                font: font,
+                size: 80,
+                height: 5,
+                curveSegments: 12,
+                bevelEnabled: true,
+                bevelThickness: 10,
+                bevelSize: 8,
+                bevelSegments: 5
+            } );
+            //scene.add( geometryFont );
+        } );
+
+        let geometry = new THREE.BoxGeometry(50.5, 50.5, 100.5);
         // 彩色
         // const material = new THREE.MeshPhongMaterial( { vertexColors: true } );
         const material = new THREE.MeshPhongMaterial({
@@ -105,8 +124,92 @@
             transparent: true,
             // 设置材质透明度
             opacity: 0.2
-        });
+        })
 
+        /**
+         * 创建线条对象
+         */
+        function drawXLine(pointsIn = [[0, 0, 0], [0, 0, 0]]){
+            let points = [];
+            points.push( new THREE.Vector3( ...pointsIn[0] ) );
+            points.push( new THREE.Vector3( ...pointsIn[1] ) );
+            let geometryLine = new THREE.BufferGeometry().setFromPoints( points );
+            let materialLine = new THREE.LineBasicMaterial({
+                color: '#000', //线条颜色
+            });//材质对象
+            let line = new THREE.Line(geometryLine,materialLine);//线条模型对象
+            line.position.x = 25;
+            line.position.z = 50;
+            scene.add(line);//线条对象添加到场景中
+        }
+
+        // x 轴
+        drawXLine([[-70, 0, 0], [0, 0, 0]])
+        drawXLine([[-70, 0.1, 0], [0, 0.1, 0]])
+        drawXLine([[-70, -0.1, 0], [0, -0.1, 0]])
+        drawXLine([[-70, 0, 0.1], [0, 0, 0.1]])
+        drawXLine([[-70, 0, -0.1], [0, 0, -0.1]])
+        // x 轴刻度线
+        drawXLine([[-50, 0, -2.5], [-50, 0, 2.5]])
+        drawXLine([[-50, 0.1, -2.5], [-50, 0.1, 2.5]])
+        drawXLine([[-50, -0.1, -2.5], [-50, -0.1, 2.5]])
+        drawXLine([[-50.1, 0, -2.5], [-50.1, 0, 2.5]])
+        drawXLine([[-49.9, 0, -2.5], [-49.9, 0, 2.5]])
+
+        // z 轴
+        drawXLine([[0, 70, 0], [0, 0, 0]])
+        drawXLine([[0.1, 70, 0], [0.1, 0, 0]])
+        drawXLine([[-0.1, 70, 0], [-0.1, 0, 0]])
+        drawXLine([[0, 70, 0.1], [0, 0, 0.1]])
+        drawXLine([[0, 70, -0.1], [0, 0, -0.1]])
+        // z 轴刻度线
+        drawXLine([[-2.5, 50, 0], [2.5, 50, 0]])
+        drawXLine([[-2.5, 50, 0.1], [2.5, 50, 0.1]])
+        drawXLine([[-2.5, 50, -0.1], [2.5, 50, -0.1]])
+        drawXLine([[-2.5, 50.1, 0], [2.5, 50.1, 0]])
+        drawXLine([[-2.5, 49.9, 0], [2.5, 49.9, 0]])
+
+        // y 轴
+        drawXLine([[0, 0, 0], [0, 0, -120]])
+        drawXLine([[0.1, 0, 0], [0.1, 0, -120]])
+        drawXLine([[-0.1, 0, 0], [-0.1, 0, -120]])
+        drawXLine([[0, 0.1, 0], [0, 0.1, -120]])
+        drawXLine([[0, -0.1, 0], [0, -0.1, -120]])
+        // y 轴刻度线
+        drawXLine([[-2.5, 0, -100], [2.5, 0, -100]])
+        drawXLine([[-2.5, 0.1, -100], [2.5, 0.1, -100]])
+        drawXLine([[-2.5, -0.1, -100], [2.5, -0.1, -100]])
+        drawXLine([[-2.5, 0, -100.1], [2.5, 0, -100.1]])
+        drawXLine([[-2.5, 0, -99.9], [2.5, 0, -99.9]])
+
+        function drawText(x,y,z, text){
+            const loader = new FontLoader();
+            loader.load( 'lib/jsm/geometries/Microsoft YaHei_Regular.json', function ( font ) {
+
+                let textGeo = new TextGeometry( text, {
+
+                    font: font,
+                    size: 3,
+                    height: 0,
+                    curveSegments: 20
+                } );
+
+                textGeo.computeBoundingBox();
+                const materialsText = new THREE.MeshPhongMaterial( { color: '#000' } ) // front;
+                const textMesh = new THREE.Mesh( textGeo, materialsText );
+                textMesh.position.x = x
+                textMesh.position.y = y
+                textMesh.position.z = z
+                scene.add(textMesh);
+            } );
+
+        }
+
+        drawText( -40, 3, 50, '2.13 m')
+        drawText( 27, 53, 50, '2.18 m')
+        drawText( 28, 3, -50, '11.8 m')
+
+        drawText( -5, 53, 50, '车头')
 
         // color vertices based on vertex positions
         const colors = geometry.getAttribute('position').array.slice();
@@ -124,38 +227,55 @@
         mesh.position.y = 25;
         scene.add(mesh);
 
+
+
+
+
         //
 
         /**
          * 阵列立方体网格模型
          */
         // 一排一排
-        function drawCubesByRow() {
-            var box = new THREE.BoxGeometry(10, 10, 10);//创建一个立方体几何对象
-            var material1 = new THREE.MeshLambertMaterial({color: 'yellow'});//材质对象
-            var meshAdd = new THREE.Object3D();//创建Object3D对象
-            for (var z = 0; z < 2; z++) {//10表示z方向立方体数量
-                for (var y = 0; y < 2; y++) {//10表示y方向立方体数量
-                    for (var x = 0; x < 2; x++) {//10表示x方向立方体数量
-                        var mesh1 = new THREE.Mesh(box, material1);//网格模型对象
-                        mesh1.position.set(x * 10, y * 10, z * 10);//立方体间距15（阵列距离）
+        function drawCubesByRow(x, y ,z, position = {px: 0, py: 0, pz: 0}, size = {length_x: 0, length_y: 0, length_z: 0}, options = {color: 'yellow'}) {
+            let box = new THREE.BoxGeometry(size.length_x, size.length_y, size.length_z);//创建一个立方体几何对象
+            let material1 = new THREE.MeshPhongMaterial({
+                color: options.color
+            });//材质对象
+            let meshAdd = new THREE.Object3D();//创建Object3D对象
+            for (let z1 = 0; z1 < z; z1++) {//10表示z方向立方体数量
+                for (let y1 = 0; y1 < y; y1++) {//10表示y方向立方体数量
+                    for (let x1 = 0; x1 < x; x1++) {//10表示x方向立方体数量
+                        let mesh1 = new THREE.Mesh(box, material1);//网格模型对象
+                        mesh1.position.set(x1 * size.length_x, y1 * size.length_y, z1 * size.length_z);//立方体间距15（阵列距离）
                         meshAdd.add(mesh1);//网格模型添加到场景中
                         // 立方体几何体box作为EdgesGeometry参数创建一个新的几何体
-                        var edges = new THREE.EdgesGeometry(box);
-                        var edgesMaterial = new THREE.LineBasicMaterial({
+                        let edges = new THREE.EdgesGeometry(box);
+                        let edgesMaterial = new THREE.LineBasicMaterial({
                             color: '#333'
                         })
-                        var line = new THREE.LineSegments(edges, edgesMaterial);
-                        line.position.set(x * 10, y * 10, z * 10);//立方体间距15（阵列距离）
+                        let line = new THREE.LineSegments(edges, edgesMaterial);
+                        line.position.set(x1 * size.length_x, y1 * size.length_y, z1 * size.length_z);//立方体间距15（阵列距离）
                         meshAdd.add(line);//网格模型添加到场景中
                     }
                 }
             }
-            meshAdd.position.y = 25;//平移所有网格模型
+            meshAdd.position.x = position.px || 0;//平移所有网格模型
+            meshAdd.position.y = position.py || 0;//平移所有网格模型
+            meshAdd.position.z = position.pz || 0;//平移所有网格模型
             scene.add(meshAdd);//网格模型添加到场景中
         }
 
-        drawCubesByRow()
+        drawCubesByRow(1,8,20, {px: 22.5,py: 2.5, pz: -47.5}, {length_x: 5, length_y: 5, length_z: 5}, {color: '#444'})
+        drawCubesByRow(1,9,20, {px: 17.5,py: 2.5, pz: -47.5}, {length_x: 5, length_y: 5, length_z: 5}, {color: '#FF9729'})
+        drawCubesByRow(1,10,20, {px: 12.5,py: 2.5, pz: -47.5}, {length_x: 5, length_y: 5, length_z: 5}, {color: '#279F40'})
+        drawCubesByRow(1,10,20, {px: 7.5,py: 2.5, pz: -47.5}, {length_x: 5, length_y: 5, length_z: 5}, {color: '#0292E9'})
+        drawCubesByRow(1,7,20, {px: 2.5,py: 2.5, pz: -47.5}, {length_x: 5, length_y: 5, length_z: 5}, {color: '#FC4672'})
+        drawCubesByRow(1,9,20, {px: -2.5,py: 2.5, pz: -47.5}, {length_x: 5, length_y: 5, length_z: 5}, {color: '#242C2E'})
+        drawCubesByRow(1,10,20, {px: -7.5,py: 2.5, pz: -47.5}, {length_x: 5, length_y: 5, length_z: 5}, {color: '#AB2317'})
+        drawCubesByRow(1,10,20, {px: -12.5,py: 2.5, pz: -47.5}, {length_x: 5, length_y: 5, length_z: 5}, {color: '#5347B6'})
+        drawCubesByRow(1,10,20, {px: -17.5,py: 2.5, pz: -47.5}, {length_x: 5, length_y: 5, length_z: 5}, {color: '#02241D'})
+        drawCubesByRow(1,10,20, {px: -22.5,py: 2.5, pz: -47.5}, {length_x: 5, length_y: 5, length_z: 5}, {color: '#FFC66D'})
 
 
         renderer = new THREE.WebGLRenderer({antialias: true});
